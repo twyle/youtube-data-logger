@@ -5,7 +5,7 @@ def create_app():
     app = FastAPI()
     register_routers(app)
     
-    @app.get('/')
+    @app.get('/', tags=['Home'])
     async def get():
         return {'message': 'hello world!'}
     

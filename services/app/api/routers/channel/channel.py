@@ -29,3 +29,15 @@ async def get_task_status(task_id: str):
 @channel.get('/', status_code=200)
 async def get_channel(channel_id: str):
     return {'channel': 'True'}
+
+
+@channel.post('/videos', status_code=201)
+async def add_channel_videos(channel_id: str):
+    task = load_channel.delay(channel_id)
+    return JSONResponse({"task_id": task.id})
+
+
+@channel.post('/playlists', status_code=201)
+async def add_channel_playlists(channel_id: str):
+    task = load_channel.delay(channel_id)
+    return JSONResponse({"task_id": task.id})
