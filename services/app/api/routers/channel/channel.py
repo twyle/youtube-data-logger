@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from ...extensions.extensions import load_channel
+from ...extensions.extensions import load_channel, load_channel_playlists
 from celery.result import AsyncResult
 
 
@@ -31,13 +31,7 @@ async def get_channel(channel_id: str):
     return {'channel': 'True'}
 
 
-@channel.post('/videos', status_code=201)
-async def add_channel_videos(channel_id: str):
-    task = load_channel.delay(channel_id)
-    return JSONResponse({"task_id": task.id})
-
-
 @channel.post('/playlists', status_code=201)
 async def add_channel_playlists(channel_id: str):
-    task = load_channel.delay(channel_id)
+    task = load_channel_playlists.delay(channel_id)
     return JSONResponse({"task_id": task.id})

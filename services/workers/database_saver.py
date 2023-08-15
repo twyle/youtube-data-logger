@@ -53,8 +53,24 @@ def add_video_to_api():
                 print(resp.json)
             else:
                 print(resp.text)
+                
+def add_playlist_to_api():
+    url = 'http://localhost:5000/api/v1/playlists/playlist'
+    redis = Redis()
+    sub = redis.pubsub()
+    sub.subscribe('playlists')
+    for data in sub.listen():
+        if isinstance(data['data'], bytes):
+            playlist_data = loads(data['data'])
+            playlist_data['published_at'] = str(datetime.utcnow())
+            # resp = post_data(data=playlist_data, url=url)
+            # if resp.ok:
+            #     print(resp.json)
+            # else:
+            #     print(resp.text)
+            print(playlist_data)
 
 if __name__ == '__main__':
     create_all()
     while True:
-        add_video_to_api()
+        add_playlist_to_api()

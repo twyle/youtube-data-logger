@@ -4,7 +4,7 @@ from celery import Celery
 from json import dumps
 from youtube import YouTube
 from youtube.models import (
-    Video, Channel, Playlist
+    Video, Channel, Playlist, PlaylistItem
 )
 
 
@@ -21,7 +21,9 @@ youtube.authenticate()
 def get_video_by_id(video_id: str) -> Video:
     """Get a YouTube Video by its id."""
     video = youtube.find_video_by_id(video_id)
-    return video[0]
+    if video:
+        return video[0]
+    return None
 
 def get_channel_id_title(video: Video) -> dict[str, str]:
     """Get channel id and title from video."""
@@ -41,9 +43,19 @@ def get_channel_from_video(video_id: str) -> Channel:
     channel = get_channel_from_id(channel_id)
     return channel[0]
 
-def get_playlist_from_id(playlist_id: str) -> Playlist:
-    playlist = youtube.find_playlist_by_id(playlist_id)
-    return playlist
+def get_channel_playlists(channel_id: str) -> list[Playlist]:
+    playlists = youtube.find_channel_playlists(channel_id)
+    return playlists
+
+def get_playlist_videos(playlist_id: str) -> list[Video]:
+    playlist_items: list[PlaylistItem] = list(next(youtube.find_playlist_items(playlist_id)))
+    video_ids: list[str] = [item.video_id for item in playlist_items]
+    videos = []
+    for video_id in video_ids:
+        video = get_video_by_id(video_id)
+        if video:
+            videos.append(video)
+    return videos
 
 @celery.task(name="load_channel")
 def load_channel(channel_id: str):
@@ -63,14 +75,19 @@ def load_video(video_id: str):
     redis.publish('videos', dumps(video.to_dict()))
     return video.to_dict()
 
-@celery.task(name="load_playlist")
-def load_playlist(playlist_id: str):
-    if redis.get(playlist_id):
-        playlist = redis.get(playlist_id)
-        redis.publish('playlists', playlist)
-        return playlist
-    else:
-        playlist = get_playlist_from_id(playlist_id)
-        redis.set(playlist_id, playlist.to_json())
+@celery.task(name="load_channel_playlists")
+def load_channel_playlists(channel_id: str):
+    playlists = get_channel_playlists(channel_id)
+    for playlist in playlists:
         redis.publish('playlists', dumps(playlist.to_dict()))
-        return playlist.to_dict()
+        
+    return {'Playlists': [playlist.to_dict() for playlist in playlists]}
+
+
+@celery.task(name="load_playlist_videos")
+def load_playlist_videos(playlist_id: str):
+    videos = get_playlist_videos(playlist_id)
+    for video in videos:
+        redis.publish('videos', dumps(video.to_dict()))
+        
+    return {'Videos': [video.to_dict() for video in videos]}
