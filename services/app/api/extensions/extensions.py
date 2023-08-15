@@ -4,8 +4,9 @@ from celery import Celery
 from json import dumps
 from youtube import YouTube
 from youtube.models import (
-    Video, Channel, Playlist, PlaylistItem
+    Video, Channel, Playlist, PlaylistItem, VideoCommentThread, Comment, CommentAuthor
 )
+from typing import Iterator
 
 
 celery = Celery(__name__)
@@ -57,6 +58,20 @@ def get_playlist_videos(playlist_id: str) -> list[Video]:
             videos.append(video)
     return videos
 
+def get_video_comments(video_id: str):
+    search_iterator: Iterator = youtube.find_video_comments(video_id)
+    video_comment_threads: list[VideoCommentThread] = list(next(search_iterator))
+    authors: list[dict[str, str]] = []
+    comments: list[dict[str, str]] = []
+    for video_comment_thread in video_comment_threads:
+        comment: Comment = video_comment_thread.top_level_comment.comment
+        author: CommentAuthor = video_comment_thread.top_level_comment.comment.comment_author
+        authors.append(author.to_dict())
+        comment.comment_author = author.to_dict()
+        video_comment: dict[str, str] = comment.to_dict()
+        comments.append(video_comment)
+    return comments
+
 @celery.task(name="load_channel")
 def load_channel(channel_id: str):
     if redis.get(channel_id):
@@ -91,3 +106,12 @@ def load_playlist_videos(playlist_id: str):
         redis.publish('videos', dumps(video.to_dict()))
         
     return {'Videos': [video.to_dict() for video in videos]}
+
+
+@celery.task(name="load_video_comments")
+def load_video_comments(video_id: str):
+    comments = get_video_comments(video_id)
+    for comment in comments:
+        redis.publish('comments', dumps(comment))
+        
+    return {'Comments': comments}

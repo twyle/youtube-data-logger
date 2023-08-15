@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from ...extensions.extensions import load_video
+from ...extensions.extensions import load_video, load_video_comments
 from celery.result import AsyncResult
 
 
@@ -27,5 +27,5 @@ async def get_task_status(task_id: str):
 
 @video.post('/comments', status_code=201)
 async def add_video_comments(video_id: str):
-    task = load_video.delay(video_id)
+    task = load_video_comments.delay(video_id)
     return JSONResponse({"task_id": task.id})
