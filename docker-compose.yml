@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7
+    ports:
+      - '6379:6379'
+    command: redis-server --loglevel warning
+    volumes:
+      - redis:/data
+
+  # web:
+  #   build: ./services/app
+  #   ports:
+  #     - 8004:8000
+  #   command: uvicorn manage:app --host 0.0.0.0 --reload
+  #   volumes:
+  #     - ./services/app:/usr/src/app
+  #   environment:
+  #     - CELERY_BROKER_URL=redis://redis:6379/0
+  #     - CELERY_RESULT_BACKEND=redis://redis:6379/0
+  #   depends_on:
+  #     - redis
+
+  # worker:
+  #   build: ./services/app
+  #   ports:
+  #     - 8000:8000
+  #   command: celery -A worker.celery worker --loglevel=info
+  #   volumes:
+  #     - ./services/app:/usr/src/app
+  #   environment:
+  #     - CELERY_BROKER_URL=redis://redis:6379/0
+  #     - CELERY_RESULT_BACKEND=redis://redis:6379/0
+  #   depends_on:
+  #     - web
+  #     - redis
+
+volumes:
+  redis:
+    driver: local

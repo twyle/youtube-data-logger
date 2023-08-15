@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "youtube-data-logger"
+version = "0.1.0"
+description = "An API that uses celery workers and redis to download data from YouTube."
+authors = ["twyle <lyceokoth@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.101.1"
+uvicorn = "^0.23.2"
+celery = "^5.3.1"
+redis = "^5.0.0"
+ayv = "^0.5.0"
+pydantic-settings = "^2.0.3"
+python-dotenv = "^1.0.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
