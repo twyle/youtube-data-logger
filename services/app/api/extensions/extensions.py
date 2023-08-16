@@ -1,12 +1,14 @@
 import os
 from redis import Redis
-from celery import Celery
+from celery import Celery, group, chain
 from json import dumps
 from youtube import YouTube
 from youtube.models import (
     Video, Channel, Playlist, PlaylistItem, VideoCommentThread, Comment, CommentAuthor
 )
+from json import loads, dumps
 from typing import Iterator
+import requests
 
 
 celery = Celery(__name__)
@@ -58,6 +60,14 @@ def get_playlist_videos(playlist_id: str) -> list[Video]:
             videos.append(video)
     return videos
 
+
+def post_data(data: dict, url: str):
+    admin_token = ''
+    headers = {'Authorization': f'Bearer {admin_token}'}
+    resp = requests.post(url, json=data, headers=headers)
+    return resp
+
+
 def get_video_comments(video_id: str):
     search_iterator: Iterator = youtube.find_video_comments(video_id)
     video_comment_threads: list[VideoCommentThread] = list(next(search_iterator))
@@ -74,15 +84,9 @@ def get_video_comments(video_id: str):
 
 @celery.task(name="load_channel")
 def load_channel(channel_id: str):
-    if redis.get(channel_id):
-        channel = redis.get(channel_id)
-        redis.publish('channels', channel)
-        return channel
-    else:
-        channel = get_channel_from_video(channel_id)
-        redis.set(channel_id, channel.to_json())
-        redis.publish('channels', dumps(channel.to_dict()))
-        return channel.to_dict()
+    channel = get_channel_from_video(channel_id)
+    redis.publish('channels', dumps(channel.to_dict()))
+    return channel.to_dict()
 
 @celery.task(name="load_video")
 def load_video(video_id: str):
@@ -115,3 +119,4 @@ def load_video_comments(video_id: str):
         redis.publish('comments', dumps(comment))
         
     return {'Comments': comments}
+

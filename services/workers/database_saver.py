@@ -35,7 +35,7 @@ def add_channel_to_api():
             channel_data['published_at'] = str(datetime.utcnow())
             resp = post_data(data=channel_data, url=url)
             if resp.ok:
-                print(resp.json)
+                print(resp.json())
             else:
                 print(resp.text)
                 
@@ -63,14 +63,41 @@ def add_playlist_to_api():
         if isinstance(data['data'], bytes):
             playlist_data = loads(data['data'])
             playlist_data['published_at'] = str(datetime.utcnow())
-            # resp = post_data(data=playlist_data, url=url)
-            # if resp.ok:
-            #     print(resp.json)
-            # else:
-            #     print(resp.text)
+            resp = post_data(data=playlist_data, url=url)
+            if resp.ok:
+                print(resp.json())
+            else:
+                print(resp.text)
             print(playlist_data)
+            
+def add_comment_to_api():
+    url = 'http://localhost:5000/api/v1/comments/comment'
+    redis = Redis()
+    sub = redis.pubsub()
+    sub.subscribe('comments')
+    for data in sub.listen():
+        if isinstance(data['data'], bytes):
+            comment_data = loads(data['data'])
+            comment_data['published_at'] = str(datetime.utcnow())
+            if comment_data.get('updated_at'):
+                comment_data['updated_at'] = str(datetime.utcnow())
+            resp = post_data(data=comment_data, url=url)
+            if resp.ok:
+                print(resp.json())
+            else:
+                print(resp.text)
+            print(comment_data)
+            
+def process_data(endpoint):
+    endpoints = {
+        'playlist': add_playlist_to_api,
+        'video': add_video_to_api,
+        'channel': add_channel_to_api,
+        'comment': add_comment_to_api
+    }
+    while True:
+        endpoints[endpoint]()
 
 if __name__ == '__main__':
     create_all()
-    while True:
-        add_playlist_to_api()
+    process_data('playlist')

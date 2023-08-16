@@ -1,6 +1,8 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from ...extensions.extensions import load_channel, load_channel_playlists
+from ...extensions.extensions import (
+    load_channel, load_channel_playlists
+    )
 from celery.result import AsyncResult
 
 
@@ -24,6 +26,7 @@ async def get_task_status(task_id: str):
         "task_status": task_result.status,
         "task_result": task_result.result
     }
+    print(result)
     return JSONResponse(result)
 
 @channel.get('/', status_code=200)

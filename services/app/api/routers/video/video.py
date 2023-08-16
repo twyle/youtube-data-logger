@@ -23,6 +23,7 @@ async def get_task_status(task_id: str):
         "task_status": task_result.status,
         "task_result": task_result.result
     }
+    print(result)
     return JSONResponse(result)
 
 @video.post('/comments', status_code=201)
