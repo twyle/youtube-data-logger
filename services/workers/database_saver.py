@@ -5,6 +5,7 @@ from database.database import get_db, create_all
 from database.models.channel import Channel
 from datetime import datetime
 import requests
+import sys
 
 def add_channel_to_db():
     redis = Redis()
@@ -50,7 +51,7 @@ def add_video_to_api():
             channel_data['published_at'] = str(datetime.utcnow())
             resp = post_data(data=channel_data, url=url)
             if resp.ok:
-                print(resp.json)
+                print(resp.json())
             else:
                 print(resp.text)
                 
@@ -88,16 +89,17 @@ def add_comment_to_api():
                 print(resp.text)
             print(comment_data)
             
+endpoints = {
+    'playlist': add_playlist_to_api,
+    'video': add_video_to_api,
+    'channel': add_channel_to_api,
+    'comment': add_comment_to_api
+}         
+
 def process_data(endpoint):
-    endpoints = {
-        'playlist': add_playlist_to_api,
-        'video': add_video_to_api,
-        'channel': add_channel_to_api,
-        'comment': add_comment_to_api
-    }
     while True:
         endpoints[endpoint]()
 
 if __name__ == '__main__':
-    create_all()
-    process_data('playlist')
+    channel = sys.argv[1]
+    process_data(channel)
