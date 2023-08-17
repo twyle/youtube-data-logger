@@ -26,7 +26,7 @@ services:
   #   build: ./services/app
   #   ports:
   #     - 8000:8000
-  #   command: celery -A worker.celery worker --loglevel=info
+  #   command: celery -A manage.celery worker --loglevel=info
   #   volumes:
   #     - ./services/app:/usr/src/app
   #   environment:
@@ -35,6 +35,42 @@ services:
   #   depends_on:
   #     - web
   #     - redis
+
+  video:
+    build: ./services/workers
+    command: python database_saver.py video
+    env_file:
+      - ./services/workers/.env
+    depends_on:
+      # - web
+      - redis
+
+  channel:
+    build: ./services/workers
+    command: python database_saver.py channel
+    env_file:
+      - ./services/workers/.env
+    depends_on:
+      # - web
+      - redis
+
+  playlist:
+    build: ./services/workers
+    command: python database_saver.py playlist
+    env_file:
+      - ./services/workers/.env
+    depends_on:
+      # - web
+      - redis
+
+  comment:
+    build: ./services/workers
+    command: python database_saver.py comment
+    env_file:
+      - ./services/workers/.env
+    depends_on:
+      # - web
+      - redis
 
 volumes:
   redis:

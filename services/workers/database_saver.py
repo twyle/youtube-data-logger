@@ -6,9 +6,16 @@ from database.models.channel import Channel
 from datetime import datetime
 import requests
 import sys
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+url_base = os.environ.get('URL_BASE', 'http://localhost:5000/api/v1/')
+redis_host = os.environ.get('REDIS_HOST', 'localhost')
+redis = Redis(host=redis_host)
 
 def add_channel_to_db():
-    redis = Redis()
     sub = redis.pubsub()
     sub.subscribe('channels')
     for data in sub.listen():
@@ -26,8 +33,7 @@ def post_data(data: dict, url: str):
     return resp
             
 def add_channel_to_api():
-    url = 'http://localhost:5000/api/v1/channels/channel'
-    redis = Redis()
+    url = f'{url_base}/channels/channel'
     sub = redis.pubsub()
     sub.subscribe('channels')
     for data in sub.listen():
@@ -41,8 +47,7 @@ def add_channel_to_api():
                 print(resp.text)
                 
 def add_video_to_api():
-    url = 'http://localhost:5000/api/v1/videos/video'
-    redis = Redis()
+    url = f'{url_base}/videos/video'
     sub = redis.pubsub()
     sub.subscribe('videos')
     for data in sub.listen():
@@ -56,8 +61,7 @@ def add_video_to_api():
                 print(resp.text)
                 
 def add_playlist_to_api():
-    url = 'http://localhost:5000/api/v1/playlists/playlist'
-    redis = Redis()
+    url = f'{url_base}/playlists/playlist'
     sub = redis.pubsub()
     sub.subscribe('playlists')
     for data in sub.listen():
@@ -72,8 +76,7 @@ def add_playlist_to_api():
             print(playlist_data)
             
 def add_comment_to_api():
-    url = 'http://localhost:5000/api/v1/comments/comment'
-    redis = Redis()
+    url = f'{url_base}/comments/comment'
     sub = redis.pubsub()
     sub.subscribe('comments')
     for data in sub.listen():
