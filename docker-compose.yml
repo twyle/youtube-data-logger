@@ -9,32 +9,31 @@ services:
     volumes:
       - redis:/data
 
-  # web:
-  #   build: ./services/app
-  #   ports:
-  #     - 8004:8000
-  #   command: uvicorn manage:app --host 0.0.0.0 --reload
-  #   volumes:
-  #     - ./services/app:/usr/src/app
-  #   environment:
-  #     - CELERY_BROKER_URL=redis://redis:6379/0
-  #     - CELERY_RESULT_BACKEND=redis://redis:6379/0
-  #   depends_on:
-  #     - redis
+  web:
+    build: ./services/app
+    ports:
+      - 8000:8000
+    command: uvicorn manage:app --host 0.0.0.0 --reload
+    volumes:
+      - ./services/app:/usr/src/app
+    env_file:
+      - ./services/app/.env
+    depends_on:
+      - redis
 
-  # worker:
-  #   build: ./services/app
-  #   ports:
-  #     - 8000:8000
-  #   command: celery -A manage.celery worker --loglevel=info
-  #   volumes:
-  #     - ./services/app:/usr/src/app
-  #   environment:
-  #     - CELERY_BROKER_URL=redis://redis:6379/0
-  #     - CELERY_RESULT_BACKEND=redis://redis:6379/0
-  #   depends_on:
-  #     - web
-  #     - redis
+  worker:
+    build: ./services/app
+    ports:
+      - 8002:8000
+    command: celery -A manage.celery worker --loglevel=info
+    volumes:
+      - ./services/app:/usr/src/app
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - web
+      - redis
 
   video:
     build: ./services/workers
@@ -42,7 +41,8 @@ services:
     env_file:
       - ./services/workers/.env
     depends_on:
-      # - web
+      - web
+      - worker
       - redis
 
   channel:
@@ -51,7 +51,8 @@ services:
     env_file:
       - ./services/workers/.env
     depends_on:
-      # - web
+      - web
+      - worker
       - redis
 
   playlist:
@@ -60,7 +61,8 @@ services:
     env_file:
       - ./services/workers/.env
     depends_on:
-      # - web
+      - web
+      - worker
       - redis
 
   comment:
@@ -69,7 +71,8 @@ services:
     env_file:
       - ./services/workers/.env
     depends_on:
-      # - web
+      - web
+      - worker
       - redis
 
 volumes:

@@ -9,16 +9,18 @@ from youtube.models import (
 from json import loads, dumps
 from typing import Iterator
 import requests
+from ..config import config
 
 
 celery = Celery(__name__)
-celery.conf.broker_url = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379")
-celery.conf.result_backend = os.environ.get("CELERY_RESULT_BACKEND", "redis://localhost:6379")
+celery.conf.broker_url = config.celery_broker_url
+celery.conf.result_backend = config.celery_result_backend
 
-redis = Redis()
-
-youtube = YouTube(client_secret_file='/home/lyle/Downloads/client_secret.json')
-youtube.authenticate()
+redis = Redis(host=config.redis_host)
+client_secret_file = config.client_secret_file
+credentials_dir = config.credentials_dir
+youtube = YouTube()
+youtube.authenticate(clients_secret_file=client_secret_file, credentials_directory=credentials_dir)
 
 
 def get_video_by_id(video_id: str) -> Video:

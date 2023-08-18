@@ -7,6 +7,8 @@ load_dotenv()
 class BaseConfig(BaseSettings):
     celery_broker_url: str
     celery_result_backend: str
-    secret_file: str
+    client_secret_file: str
+    credentials_dir: str
+    redis_host: str
     
 config = BaseConfig()
