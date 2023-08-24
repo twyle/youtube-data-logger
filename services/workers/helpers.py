@@ -36,8 +36,10 @@ def get_video_comments_task_result(task_id: str) -> dict:
     count: int = 0
     while resp.json()['task_status'] != 'SUCCESS' and count < 10:
         time.sleep(1)
+        resp = requests.get(url='http://web:8000/video/task_status', params={'task_id': task_id})
+        count += 1
+    if count < 10:
         comments = resp.json()['task_result']['Comments']
-        print(comments)
         return comments
     return []
     

@@ -71,9 +71,6 @@ def add_video_to_api():
     for data in sub.listen():
         if isinstance(data['data'], bytes):
             video_data = loads(data['data'])
-            resp = index_resource(resource=video_data, index=videos_index, es_client=es_client, id=video_data['video_id'])
-            print(resp)
-            video_data['published_at'] = str(datetime.utcnow())
             resp = post_data(data=video_data, url=url)
             if resp.ok:
                 print(resp.json())
@@ -82,6 +79,9 @@ def add_video_to_api():
             resp = get_video_comments(video_id=video_data['video_id'])
             task_id: str = resp['task_id']
             comments = get_video_comments_task_result(task_id)
+            video_data['comments'] = comments
+            resp = index_resource(resource=video_data, index=videos_index, es_client=es_client, id=video_data['video_id'])
+            print(resp)
                 
 def add_playlist_to_api():
     url = f'{url_base}/playlists/playlist'
