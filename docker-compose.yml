@@ -1,13 +1,13 @@
 version: '3.8'
 
 services:
-  redis:
-    image: redis:7
-    ports:
-      - '6379:6379'
-    command: redis-server --loglevel warning
-    volumes:
-      - redis:/data
+  # redis:
+  #   image: redis:7
+  #   ports:
+  #     - '6379:6379'
+  #   command: redis-server --loglevel warning
+  #   volumes:
+  #     - redis:/data
 
   web:
     build: ./services/app
@@ -18,8 +18,8 @@ services:
       - ./services/app:/usr/src/app
     env_file:
       - ./services/app/.env
-    depends_on:
-      - redis
+    # depends_on:
+    #   - redis
 
   worker:
     build: ./services/app
@@ -28,12 +28,11 @@ services:
     command: celery -A manage.celery worker --loglevel=info
     volumes:
       - ./services/app:/usr/src/app
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    env_file:
+      - ./services/app/.env
     depends_on:
       - web
-      - redis
+      # - redis
 
   video:
     build: ./services/workers
@@ -43,7 +42,7 @@ services:
     depends_on:
       - web
       - worker
-      - redis
+      # - redis
 
   channel:
     build: ./services/workers
@@ -53,7 +52,7 @@ services:
     depends_on:
       - web
       - worker
-      - redis
+      # - redis
 
   playlist:
     build: ./services/workers
@@ -63,7 +62,7 @@ services:
     depends_on:
       - web
       - worker
-      - redis
+      # - redis
 
   comment:
     build: ./services/workers
@@ -73,8 +72,8 @@ services:
     depends_on:
       - web
       - worker
-      - redis
+      # - redis
 
-volumes:
-  redis:
-    driver: local
+# volumes:
+#   redis:
+#     driver: local

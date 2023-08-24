@@ -7,3 +7,4 @@ pydantic-settings
 python-dotenv
 requests
 sqlalchemy
+elasticsearch==7.17.7
